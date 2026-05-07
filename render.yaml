@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: digital-asset-protection-api
+    env: docker
+    plan: free # Use Free tier (512MB RAM) - AI optimized
+    region: ohio
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: GOOGLE_API_KEY
+        sync: false # Set in Render Dashboard
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
