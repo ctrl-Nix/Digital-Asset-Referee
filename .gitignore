@@ -1,9 +1,34 @@
+<<<<<<< HEAD
+# Logs
+logs
+*.log
+=======
 # Node.js
 node_modules/
+>>>>>>> 7873c0ece1dc18032cf2325d9983cebdc431e923
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+<<<<<<< HEAD
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+=======
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
@@ -83,3 +108,4 @@ backend/dataset
 backend/*.pth
 
 *pptx*
+>>>>>>> 7873c0ece1dc18032cf2325d9983cebdc431e923
