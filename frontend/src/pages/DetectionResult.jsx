@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Zap, Download, ShieldAlert, ArrowLeft, Info, Fingerprint, Database, ShieldCheck } from 'lucide-react'
+import { Zap, Download, ShieldAlert, ArrowLeft, Info, Fingerprint, Database, ShieldCheck, Clock } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ComparisonView from '../components/ComparisonView'
+import AgentTimeline from '../components/AgentTimeline'
 import Badge from '../components/ui/Badge'
 import ConfidenceRing from '../components/ui/ConfidenceRing'
 import Card from '../components/ui/Card'
@@ -73,6 +74,11 @@ export default function DetectionResult() {
     }
   }
 
+  // Extract agent verdict for display (new field from pipeline)
+  const agentVerdict = result.agent_verdict || null
+  const agentReasoning = result.agent_reasoning || null
+  const pipelineTime = result.pipeline_time_seconds || null
+
   return (
     <div className="min-h-screen bg-bg-void text-text-primary pb-20">
       <Navbar />
@@ -93,15 +99,29 @@ export default function DetectionResult() {
           <div className="space-y-4 text-center md:text-left">
             <div>
               <p className="font-mono text-[11px] text-brand-neutral uppercase tracking-[0.2em] mb-2">Verdict</p>
-              <Badge verdict={result.verdict?.toUpperCase()} />
+              <div className="flex items-center gap-3 flex-wrap justify-center md:justify-start">
+                <Badge verdict={result.verdict?.toUpperCase()} />
+                {agentVerdict && agentVerdict !== result.verdict?.toUpperCase() && (
+                  <span className="font-mono text-[10px] text-white/30 px-2 py-0.5 rounded-full border border-white/10">
+                    Agent: {agentVerdict}
+                  </span>
+                )}
+              </div>
             </div>
             
-            <div className="font-mono text-[13px] text-brand-neutral flex items-center justify-center md:justify-start gap-3">
+            <div className="font-mono text-[13px] text-brand-neutral flex items-center justify-center md:justify-start gap-3 flex-wrap">
               <span>{result.matched_owner || 'UNKNOWN OWNER'}</span>
               <span className="opacity-30">|</span>
               <span>{result.matched_sport_category || 'UNSPECIFIED'}</span>
-              <span className="opacity-30">|</span>
-              <span>{result.matched_upload_date || 'DATE UNKNOWN'}</span>
+              {pipelineTime && (
+                <>
+                  <span className="opacity-30">|</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {pipelineTime}s
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -126,67 +146,94 @@ export default function DetectionResult() {
           </motion.div>
         )}
 
-        {/* AI Analysis & Evidence */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Forensic Trace & AI Analysis */}
-          <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Forensic Trace + AI Analysis */}
+          <div className="lg:col-span-2 space-y-8">
             
-            {/* Forensic Trace */}
-            <Card className="lg:col-span-1 p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="font-mono text-xs text-brand-primary uppercase tracking-widest flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4" /> Digital Forensic Trace
-                </h3>
-              </div>
+            {/* === AGENT REASONING PANEL (NEW) === */}
+            {agentReasoning && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Card className="p-6">
+                  <AgentTimeline agentData={agentReasoning} />
+                </Card>
+              </motion.div>
+            )}
 
-              <div className="space-y-4">
-                <div className="p-4 bg-bg-void/50 border border-white/5 rounded-lg flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="font-mono text-[9px] text-brand-neutral uppercase tracking-tighter">DCT Watermark</p>
-                    <p className={`font-mono text-xs font-bold ${result.watermark_verified ? 'text-brand-primary' : 'text-brand-neutral'}`}>
-                      {result.watermark_verified ? 'VERIFIED' : 'NOT DETECTED'}
+            {/* Forensic Trace & AI Analysis Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Forensic Trace */}
+              <Card className="lg:col-span-1 p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-mono text-xs text-brand-primary uppercase tracking-widest flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" /> Digital Forensic Trace
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-bg-void/50 border border-white/5 rounded-lg flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="font-mono text-[9px] text-brand-neutral uppercase tracking-tighter">DCT Watermark</p>
+                      <p className={`font-mono text-xs font-bold ${result.watermark_verified ? 'text-brand-primary' : 'text-brand-neutral'}`}>
+                        {result.watermark_verified ? 'VERIFIED' : 'NOT DETECTED'}
+                      </p>
+                    </div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${result.watermark_verified ? 'bg-brand-primary/10 text-brand-primary' : 'bg-white/5 text-brand-neutral'}`}>
+                      <Fingerprint className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {result.watermark_verified && (
+                    <div className="p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-lg animate-pulse">
+                       <p className="font-mono text-[9px] text-brand-primary uppercase mb-1">Decoded Payload</p>
+                       <p className="font-mono text-[10px] text-white break-all">{result.watermark_payload}</p>
+                    </div>
+                  )}
+
+                  <div className="p-4 bg-bg-void/50 border border-white/5 rounded-lg">
+                     <p className="font-mono text-[9px] text-brand-neutral uppercase tracking-tighter mb-2">Hash Signature</p>
+                     <div className="flex items-center gap-2 font-mono text-[10px] text-brand-primary truncate">
+                        <Database className="w-3 h-3" />
+                        {result.detection_id?.substring(0, 16) || result.id?.substring(0, 16) || 'N/A'}...
+                     </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* AI Analysis Panel */}
+              <Card className="lg:col-span-2 p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-brand-primary">
+                    <Zap className="w-5 h-5 fill-current" />
+                    <h3 className="font-display font-bold text-lg uppercase tracking-wider">AI Content Analysis</h3>
+                  </div>
+                  <Info className="w-4 h-4 text-brand-neutral opacity-50" />
+                </div>
+                
+                <div className="relative">
+                  <span className="absolute -top-4 -left-2 text-6xl text-brand-primary/20 font-serif">"</span>
+                  <blockquote className="font-body italic text-lg text-white/90 pl-6 leading-relaxed">
+                    {result.gemini_description || "No specific AI descriptive analysis available for this content payload."}
+                  </blockquote>
+                </div>
+
+                {/* Chief Referee reasoning excerpt */}
+                {agentReasoning?.chief_referee?.reasoning && (
+                  <div className="mt-4 pt-4 border-t border-white/5">
+                    <p className="font-mono text-[9px] text-white/30 uppercase tracking-wider mb-2">Chief Referee Reasoning</p>
+                    <p className="font-body text-xs text-white/50 leading-relaxed line-clamp-4">
+                      {agentReasoning.chief_referee.reasoning}
                     </p>
                   </div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${result.watermark_verified ? 'bg-brand-primary/10 text-brand-primary' : 'bg-white/5 text-brand-neutral'}`}>
-                    <Fingerprint className="w-4 h-4" />
-                  </div>
-                </div>
-
-                {result.watermark_verified && (
-                  <div className="p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-lg animate-pulse">
-                     <p className="font-mono text-[9px] text-brand-primary uppercase mb-1">Decoded Payload</p>
-                     <p className="font-mono text-[10px] text-white break-all">{result.watermark_payload}</p>
-                  </div>
                 )}
-
-                <div className="p-4 bg-bg-void/50 border border-white/5 rounded-lg">
-                   <p className="font-mono text-[9px] text-brand-neutral uppercase tracking-tighter mb-2">Hash Signature</p>
-                   <div className="flex items-center gap-2 font-mono text-[10px] text-brand-primary truncate">
-                      <Database className="w-3 h-3" />
-                      {result.detection_id?.substring(0, 16) || result.id?.substring(0, 16) || 'N/A'}...
-                   </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* AI Analysis Panel */}
-            <Card className="lg:col-span-2 p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-brand-primary">
-                  <Zap className="w-5 h-5 fill-current" />
-                  <h3 className="font-display font-bold text-lg uppercase tracking-wider">AI Content Analysis</h3>
-                </div>
-                <Info className="w-4 h-4 text-brand-neutral opacity-50" />
-              </div>
-              
-              <div className="relative">
-                <span className="absolute -top-4 -left-2 text-6xl text-brand-primary/20 font-serif">"</span>
-                <blockquote className="font-body italic text-lg text-white/90 pl-6 leading-relaxed">
-                  {result.gemini_description || "No specific AI descriptive analysis available for this content payload."}
-                </blockquote>
-              </div>
-            </Card>
+              </Card>
+            </div>
           </div>
 
           {/* Evidence Report */}
@@ -215,6 +262,29 @@ export default function DetectionResult() {
                   <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
                   Download Evidence Report
                 </a>
+              )}
+
+              {/* Agent metadata */}
+              {agentReasoning?.chief_referee && (
+                <div className="pt-4 border-t border-white/5 space-y-2">
+                  <p className="font-mono text-[9px] text-white/20 uppercase tracking-wider">Pipeline Metadata</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between font-mono text-[10px]">
+                      <span className="text-white/30">Agent Verdict</span>
+                      <span className="text-white/60">{agentVerdict}</span>
+                    </div>
+                    <div className="flex justify-between font-mono text-[10px]">
+                      <span className="text-white/30">Recommended</span>
+                      <span className="text-white/60">{agentReasoning.chief_referee.recommended_action}</span>
+                    </div>
+                    {pipelineTime && (
+                      <div className="flex justify-between font-mono text-[10px]">
+                        <span className="text-white/30">Processing</span>
+                        <span className="text-white/60">{pipelineTime}s</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </Card>
           </motion.div>
