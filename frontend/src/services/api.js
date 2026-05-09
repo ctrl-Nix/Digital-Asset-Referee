@@ -27,3 +27,24 @@ export const getAssets = (idToken) =>
   axios.get(`${BASE}/assets`, {
     headers: { Authorization: `Bearer ${idToken}` },
   })
+
+// --- Auto-Detection Scheduler ---
+export const startScheduler = (config = {}) =>
+  axios.post(`${BASE}/monitor/start`, config)
+
+export const stopScheduler = () =>
+  axios.post(`${BASE}/monitor/stop`)
+
+export const getSchedulerStatus = () =>
+  axios.get(`${BASE}/monitor/status`)
+
+export const triggerManualScan = (config = {}) =>
+  axios.post(`${BASE}/monitor/scan`, config)
+
+export const getRecentScans = (limit = 20) =>
+  axios.get(`${BASE}/monitor/recent?limit=${limit}`)
+
+// --- SSE Detection Stream ---
+export const getDetectionStreamUrl = (id) =>
+  `${BASE}/detect/stream/${id}`
+
