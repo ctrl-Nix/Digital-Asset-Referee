@@ -1,1 +1,1 @@
-from . import register, detect, assets, batch
+from . import register, detect, assets, batch, monitor

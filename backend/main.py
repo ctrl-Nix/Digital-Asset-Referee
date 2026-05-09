@@ -8,7 +8,7 @@ load_dotenv()
 # Ensure temp directory exists
 Path("/tmp/dar").mkdir(parents=True, exist_ok=True)
 
-from routers import register, detect, assets, batch
+from routers import register, detect, assets, batch, monitor
 
 app = FastAPI(title="Digital Asset Referee — D.A.R. API")
 
@@ -23,6 +23,7 @@ app.include_router(register.router)
 app.include_router(detect.router)
 app.include_router(assets.router)
 app.include_router(batch.router)
+app.include_router(monitor.router)
 
 @app.get("/health")
 async def health_check():
