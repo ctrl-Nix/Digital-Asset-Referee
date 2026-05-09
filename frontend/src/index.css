@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+body { 
+  background: #050709; 
+  color: #EEF1F6; 
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased; 
+}
+h1,h2,h3,h4,h5,h6 { font-family: 'Syne', sans-serif; font-weight: 700; }
+body::after { 
+  content:''; position:fixed; inset:0;
+  background-image: linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 48px 48px; pointer-events:none; z-index:0; 
+}

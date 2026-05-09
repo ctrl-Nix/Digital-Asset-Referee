@@ -1,0 +1,12 @@
+[
+  {
+    "content_id": "demo-asset-1",
+    "owner_name": "Premier League",
+    "sport_category": "Football",
+    "phash": "8c33c3c3c3c3c3c3",
+    "embedding": [0.1, 0.2, 0.3],
+    "local_path": "backend/data/official/pl_demo.jpg",
+    "file_url": "https://example.com/pl_demo.jpg",
+    "detection_count": 0
+  }
+]
