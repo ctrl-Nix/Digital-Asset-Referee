@@ -29,3 +29,16 @@ export const getAssets = (idToken) =>
   })
 
 export const listDetections = () => axios.get(`${BASE}/detections`)
+
+export const getSchedulerStatus = () => axios.get(`${BASE}/monitor/status`)
+
+export const getMonitorConfig = () => axios.get(`${BASE}/monitor/config`)
+
+export const updateMonitorConfig = (config) =>
+  axios.post(`${BASE}/monitor/config`, config)
+
+export const runManualScan = (config) =>
+  axios.post(`${BASE}/monitor/scan`, config)
+
+export const listRecentAutoScans = (limit = 20) =>
+  axios.get(`${BASE}/monitor/recent`, { params: { limit } })
