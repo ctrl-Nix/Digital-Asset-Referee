@@ -83,7 +83,7 @@ function AlertBanner({ alert, onViewDetails, onDismiss }) {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="w-full bg-destructive/10 border border-destructive/30 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-lg relative overflow-hidden group"
+      className="w-full bg-destructive/10 border border-destructive/30 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-lg relative overflow-hidden"
     >
       <div className="absolute inset-0 bg-destructive/5 animate-pulse" />
       <div className="flex items-center gap-4 relative z-10">
@@ -140,7 +140,7 @@ function AssetTable({ assets, searchQuery, setSearchQuery, loading }) {
             placeholder="Search registry..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-background/50 border border-border/50 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground transition-all"
+            className="w-full bg-background/50 border border-border/50 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
@@ -169,7 +169,7 @@ function AssetTable({ assets, searchQuery, setSearchQuery, loading }) {
               >
                 <td className="p-5 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden relative shrink-0 border border-border/30">
-                    <img src={asset.thumb || "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=100&q=80"} alt="thumb" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" />
+                    <img src={asset.thumb || "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=100&q=80"} alt="thumb" className="w-full h-full object-cover opacity-80" />
                   </div>
                   <span className="font-bold text-foreground group-hover:text-primary transition-colors">{asset.title}</span>
                 </td>
@@ -199,7 +199,7 @@ function ActivityFeed({ detections = [], autoScanStatus, autoScanLoading }) {
   const [activities, setActivities] = useState([])
 
   useEffect(() => {
-    // Map detections to activities
+    // Map detections to activities with live data
     const mapped = detections.map(d => {
       const verdict = d.verdict || d.agent_verdict || "Unknown"
       const isPirated = ["Pirated", "INFRINGEMENT"].includes(verdict)
@@ -429,7 +429,7 @@ function RegisterAssetView({ onRegister, onCancel }) {
             value={title} 
             onChange={e => { setTitle(e.target.value); setError("") }} 
             placeholder="e.g. Premier League Live Match #482" 
-            className="w-full bg-background/50 border border-border/50 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground transition-all"
+            className="w-full bg-background/50 border border-border/50 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground"
           />
         </div>
         
@@ -438,7 +438,7 @@ function RegisterAssetView({ onRegister, onCancel }) {
           <div 
             onClick={() => fileInputRef.current?.click()}
             className={cn(
-              "border-2 border-dashed border-border/30 rounded-2xl p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all group",
+              "border-2 border-dashed border-border/30 rounded-2xl p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all",
               file && "border-primary/50 bg-primary/5"
             )}
           >
@@ -476,7 +476,7 @@ function RegisterAssetView({ onRegister, onCancel }) {
 
         <div className="mt-4 flex flex-col sm:flex-row gap-4 pt-8 border-t border-border/20">
           <LiquidMetalButton label={isSubmitting ? "Fingerprinting..." : "Initiate Protection"} onClick={isSubmitting ? undefined : handleSubmit} />
-          <button onClick={onCancel} className="px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all border border-transparent">
+          <button onClick={onCancel} className="px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all border border-border/20 hover:border-border/50">
             Abort Mission
           </button>
         </div>
@@ -531,7 +531,7 @@ export function AdminDashboard() {
       const token = await user.getIdToken()
       const response = await getAssets(token)
       
-      // Map API assets to UI structure
+      // Map API assets to UI structure with live data
       const mappedAssets = (response.data.assets || []).map(asset => ({
         id: asset.content_id || asset.id || "UNKNOWN",
         title: asset.title || "Untitled Asset",
@@ -596,6 +596,11 @@ export function AdminDashboard() {
     setTimeout(() => setToast(null), 4000)
   }, [])
 
+  // Real-time auto-scan listener with cleanup
+  const ownerName = useMemo(() => user?.displayName || user?.email || "", [user])
+  const anomalyAlerts = useAnomalyListener(ownerName)
+  const { results: autoScanResults, loading: autoScanLoading, error: autoScanError, refresh: refreshAutoScans } = useAutoScanListener({ enabled: Boolean(user) })
+
   useEffect(() => {
     if (autoScanError) {
       showToast(autoScanError, "error")
@@ -648,6 +653,7 @@ export function AdminDashboard() {
     }
   }
 
+  // Initial data fetch and polling with cleanup
   useEffect(() => {
     if (user) {
       fetchAssets()
@@ -657,24 +663,29 @@ export function AdminDashboard() {
     }
   }, [user, fetchSchedulerStatus, fetchMonitorConfig])
 
+  // Scheduler status polling with cleanup
   useEffect(() => {
     if (!user) return
     const timer = setInterval(fetchSchedulerStatus, 15000)
     return () => clearInterval(timer)
   }, [user, fetchSchedulerStatus])
 
+  // Detections polling with cleanup
+  useEffect(() => {
+    if (!user) return
+    const timer = setInterval(fetchDetections, 10000)
+    return () => clearInterval(timer)
+  }, [user])
 
-  const ownerName = useMemo(() => user?.displayName || user?.email || "", [user])
-  const anomalyAlerts = useAnomalyListener(ownerName)
-  const { results: autoScanResults, loading: autoScanLoading, error: autoScanError, refresh: refreshAutoScans } = useAutoScanListener({ enabled: Boolean(user) })
   const [activeAnomaly, setActiveAnomaly] = useState(null)
 
-
+  // Calculate metrics from live data
   const totalDetections = useMemo(
     () => assets.reduce((sum, asset) => sum + (asset.detections || 0), 0),
     [assets]
   )
 
+  // Combine detections from both sources with real-time updates
   const combinedDetections = useMemo(() => {
     const map = new Map()
     detections.forEach((det) => {
@@ -690,21 +701,25 @@ export function AdminDashboard() {
     })
   }, [detections, autoScanResults])
 
+  // Filter viral alerts from combined detections
   const autoScanAlerts = useMemo(() => {
     return autoScanResults.filter((det) =>
       ["Pirated", "INFRINGEMENT"].includes(det.verdict || det.agent_verdict)
     )
   }, [autoScanResults])
 
+  // Extract agent reasoning from latest detection
   const latestAgentData = useMemo(() => {
     const match = combinedDetections.find((det) => det.agent_reasoning)
     return match?.agent_reasoning || null
   }, [combinedDetections])
 
+  // Get latest detection ID for timeline
   const latestDetectionId = useMemo(() => {
     return combinedDetections[0]?.detection_id
   }, [combinedDetections])
 
+  // Dynamic telemetry stats from live scan data
   const telemetryStats = useMemo(() => {
     const lastCount = schedulerStatus?.last_scan_count ?? combinedDetections.length
     const baseThroughput = Math.max(1, lastCount) * TELEMETRY_BASE.throughputPerItem
@@ -726,6 +741,7 @@ export function AdminDashboard() {
   const intervalValue = Number(monitorConfig.interval_minutes)
   const isIntervalInvalid = !Number.isFinite(intervalValue) || intervalValue < 1 || intervalValue > 1440
 
+  // Set active anomaly from live alerts with priority
   useEffect(() => {
     if (anomalyAlerts.length > 0) {
       const alert = anomalyAlerts[0]
@@ -782,7 +798,7 @@ export function AdminDashboard() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-card/10 backdrop-blur-2xl border-r border-border/20 transform transition-transform duration-500 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-card/10 backdrop-blur-2xl border-r border-border/20 transform transition-transform duration-500 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="h-20 flex items-center justify-between px-8 border-b border-border/20 bg-background/20">
@@ -830,7 +846,7 @@ export function AdminDashboard() {
           </div>
           <button 
             onClick={handleLogout}
-            className="flex items-center justify-center gap-3 w-full py-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive text-white transition-all shadow-lg shadow-destructive/5 group"
+            className="flex items-center justify-center gap-3 w-full py-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive/20 transition-all group"
           >
             <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Sign Out
           </button>
@@ -892,11 +908,12 @@ export function AdminDashboard() {
                     onDismiss={() => setActiveAnomaly(null)}
                   />
 
+                  {/* Live Stat Cards with real data */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard title="Active Registry" value={assets.length} icon={Database} delay={0.1} />
                     <StatCard title="Global Matches" value={(schedulerStatus?.total_detections ?? totalDetections).toLocaleString()} icon={ShieldAlert} color="text-destructive" delay={0.2} />
                     <StatCard title="Live Alerts" value={anomalyAlerts.length + autoScanAlerts.length} icon={AlertTriangle} color="text-destructive" delay={0.3} />
-                    <StatCard title="Uptime Index" value={schedulerStatus?.running ? "Active" : "Idle"} trend={schedulerStatus?.last_scan_time ? `Last scan ${formatTimestamp(schedulerStatus.last_scan_time)}` : "Awaiting scan"} trendUp={schedulerStatus?.running} icon={Activity} delay={0.4} />
+                    <StatCard title="Uptime Index" value={schedulerStatus?.running ? "Active" : "Idle"} trend={schedulerStatus?.last_scan_time ? `Last scan ${formatTimestamp(schedulerStatus.last_scan_time)}` : ""} delay={0.4} />
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -916,6 +933,7 @@ export function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* Live Activity Feed with real detections */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2">
                       <AssetTable assets={assets} searchQuery={searchQuery} setSearchQuery={setSearchQuery} loading={loading} />
@@ -1000,7 +1018,7 @@ export function AdminDashboard() {
                               disabled={configLoading}
                               onChange={(e) => setMonitorConfig((prev) => ({ ...prev, twitter_query: e.target.value }))}
                               placeholder="sports highlights clip"
-                              className="w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground transition-all"
+                              className="w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground disabled:opacity-50"
                             />
                           </div>
 
@@ -1012,7 +1030,7 @@ export function AdminDashboard() {
                               disabled={configLoading}
                               onChange={(e) => setMonitorConfig((prev) => ({ ...prev, youtube_query: e.target.value }))}
                               placeholder="sports game highlights"
-                              className="w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground transition-all"
+                              className="w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground disabled:opacity-50"
                             />
                           </div>
 
@@ -1024,7 +1042,7 @@ export function AdminDashboard() {
                               disabled={configLoading}
                               onChange={(e) => setMonitorConfig((prev) => ({ ...prev, reddit_subreddit: e.target.value }))}
                               placeholder="sports"
-                              className="w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground transition-all"
+                              className="w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground disabled:opacity-50"
                             />
                           </div>
 
@@ -1038,7 +1056,7 @@ export function AdminDashboard() {
                               disabled={configLoading}
                               onChange={(e) => setMonitorConfig((prev) => ({ ...prev, interval_minutes: e.target.value }))}
                               className={cn(
-                                "w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 text-foreground placeholder:text-muted-foreground transition-all",
+                                "w-full bg-background/70 border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 text-foreground placeholder:text-muted-foreground disabled:opacity-50",
                                 isIntervalInvalid ? "border-destructive/50 focus:ring-destructive/20" : "focus:ring-primary/20"
                               )}
                             />
