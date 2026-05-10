@@ -11,9 +11,10 @@ load_dotenv()
 # Ensure temp directory exists
 Path("/tmp/dar").mkdir(parents=True, exist_ok=True)
 
-from routers import register, detect, assets, batch, monitor
+# Fixed Imports: Removed 'monitor' which was causing the crash
+from routers import register, detect, assets, batch, ai_router
 
-app = FastAPI(title="Digital Asset Referee — D.A.R. API")
+app = FastAPI(title="Digital Asset Protection API — AMD Powered")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,11 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include only the existing routers
 app.include_router(register.router)
 app.include_router(detect.router)
 app.include_router(assets.router)
 app.include_router(batch.router)
-app.include_router(monitor.router)
+app.include_router(ai_router.router) # Added the new AMD AI router
+# app.include_router(monitor.router) # Commented out because the file is missing
 
 @app.get("/health")
 async def health_check():
@@ -40,12 +43,12 @@ if static_dir.exists() and static_dir.is_dir():
     # Catch-all route to serve the React index.html for SPA routing
     @app.api_route("/{path_name:path}", methods=["GET"])
     async def catch_all(path_name: str):
-        # Allow API routes to 404 naturally if not found
-        if path_name.startswith("api/") or path_name in ["health", "detect", "register", "assets", "batch", "monitor"]:
+        if path_name.startswith("api/") or path_name in ["health", "detect", "register", "assets", "batch"]:
             return {"error": "Not found"}
         
         index_file = static_dir / "index.html"
         if index_file.exists():
             return FileResponse(index_file)
         return {"error": "Frontend build not found"}
+
 
