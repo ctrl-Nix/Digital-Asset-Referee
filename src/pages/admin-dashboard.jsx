@@ -666,7 +666,7 @@ export function AdminDashboard() {
 
   const ownerName = useMemo(() => user?.displayName || user?.email || "", [user])
   const anomalyAlerts = useAnomalyListener(ownerName)
-  const { results: autoScanResults, loading: autoScanLoading, error: autoScanError, refresh: refreshAutoScans } = useAutoScanListener()
+  const { results: autoScanResults, loading: autoScanLoading, error: autoScanError, refresh: refreshAutoScans } = useAutoScanListener({ enabled: Boolean(user) })
   const [activeAnomaly, setActiveAnomaly] = useState(null)
 
 
@@ -894,7 +894,7 @@ export function AdminDashboard() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard title="Active Registry" value={assets.length} icon={Database} delay={0.1} />
-                    <StatCard title="Global Matches" value={(schedulerStatus?.total_detections ?? totalDetections).toLocaleString()} trend="14% increase" trendUp={true} icon={ShieldAlert} color="text-destructive" delay={0.2} />
+                    <StatCard title="Global Matches" value={(schedulerStatus?.total_detections ?? totalDetections).toLocaleString()} icon={ShieldAlert} color="text-destructive" delay={0.2} />
                     <StatCard title="Live Alerts" value={anomalyAlerts.length + autoScanAlerts.length} icon={AlertTriangle} color="text-destructive" delay={0.3} />
                     <StatCard title="Uptime Index" value={schedulerStatus?.running ? "Active" : "Idle"} trend={schedulerStatus?.last_scan_time ? `Last scan ${formatTimestamp(schedulerStatus.last_scan_time)}` : "Awaiting scan"} trendUp={schedulerStatus?.running} icon={Activity} delay={0.4} />
                   </div>

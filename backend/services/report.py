@@ -22,6 +22,7 @@ def generate_evidence_report(detection: dict, out_path: Path) -> Path:
   try:
     c.setFillAlpha(0.08)
   except Exception:
+    # setFillAlpha is not available in older reportlab builds; continue without transparency.
     pass
   c.setFont("Helvetica-Bold", 22)
   c.setFillColorRGB(0.7, 0.78, 0.9)

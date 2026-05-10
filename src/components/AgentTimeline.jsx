@@ -28,9 +28,10 @@ export default function AgentTimeline({ agentData, detectionId, isLive = false }
   const bottomRef = useRef(null)
 
   const pushEntry = useCallback((entry) => {
+    const timestamp = entry.timestamp ? new Date(entry.timestamp) : new Date()
     setEntries((prev) => [
       ...prev,
-      { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, ...entry },
+      { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, timestamp, ...entry },
     ])
   }, [])
 
@@ -241,7 +242,7 @@ export default function AgentTimeline({ agentData, detectionId, isLive = false }
                 )}
               >
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {entry.timestamp?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                 </span>
                 <span className={cn("flex-1", LEVEL_STYLES[entry.level] || "text-foreground")}>
                   <TypewriterText text={entry.text} animate={entry.animate} />

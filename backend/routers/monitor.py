@@ -14,6 +14,7 @@ Endpoints:
 
 from fastapi import APIRouter, HTTPException
 from typing import Optional
+from threading import Lock
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/monitor", tags=["monitor"])
@@ -30,6 +31,7 @@ class SchedulerConfig(BaseModel):
 # In-memory singleton config; stored in-process and not persisted across restarts.
 # Updates replace the object atomically but are not synchronized across threads/workers.
 _monitor_config = SchedulerConfig()
+_monitor_lock = Lock()
 
 
 def _build_queries(config: SchedulerConfig) -> dict:
@@ -49,15 +51,21 @@ def _build_queries(config: SchedulerConfig) -> dict:
     }
 
 
+def _get_monitor_config() -> SchedulerConfig:
+    with _monitor_lock:
+        return _monitor_config
+
+
 def _set_monitor_config(config: SchedulerConfig) -> None:
     global _monitor_config
-    _monitor_config = config
+    with _monitor_lock:
+        _monitor_config = config
 
 
 @router.get("/config")
 async def get_monitor_config():
     """Return the current auto-scan configuration."""
-    return _monitor_config.dict()
+    return _get_monitor_config().dict()
 
 
 @router.post("/config")
@@ -76,7 +84,7 @@ async def start_scheduler(config: SchedulerConfig | None = None):
     if status["running"]:
         raise HTTPException(status_code=409, detail="Scheduler is already running")
 
-    effective_config = config or _monitor_config
+    effective_config = config or _get_monitor_config()
     _set_monitor_config(effective_config)
     queries = _build_queries(effective_config)
 
@@ -116,7 +124,7 @@ async def manual_scan(config: SchedulerConfig | None = None):
     """Trigger a single scan cycle manually (does not affect scheduler)."""
     from services.scheduler import run_scan_cycle
 
-    effective_config = config or _monitor_config
+    effective_config = config or _get_monitor_config()
     _set_monitor_config(effective_config)
     queries = _build_queries(effective_config)
 
