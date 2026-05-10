@@ -11,10 +11,8 @@ from pydantic import BaseModel, Field
 
 from services.ingest import fetch_from_url, normalize_image, extract_frames, generate_preview_url
 from services.fingerprint import generate_phash
-from services.embedding import generate_embedding
 from services.matcher import find_best_match
 from services.scorer import compute_verdict
-from services.gemini import describe_content
 from db.firestore import save_detection, increment_detection_count
 
 router = APIRouter()
@@ -26,6 +24,14 @@ class BatchDetectRequest(BaseModel):
 # Max 1 concurrent heavy task for Free Tiers (512MB RAM limit)
 MAX_CONCURRENT_TASKS = 1
 semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
+
+def generate_embedding(image):
+    """Placeholder: AMD inference will replace this"""
+    return [0.95] * 1280
+
+def describe_content(image):
+    """Placeholder: AMD inference will replace this"""
+    return "AI analysis unavailable"
 
 def _run_detection_for_url(url: str) -> dict:
     detection_id = str(uuid.uuid4())

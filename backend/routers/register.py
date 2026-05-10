@@ -1,8 +1,10 @@
+<<<<<<< HEAD
+
+=======
 from fastapi import APIRouter, UploadFile, File, Form, Header, HTTPException
 from firebase_admin import auth as fb_auth
 from services.ingest import normalize_image, extract_frames
 from services.fingerprint import generate_phash
-from services.embedding import generate_embedding
 from services.watermark import embed_watermark
 from db.firestore import save_official_media, get_db
 from pathlib import Path
@@ -45,7 +47,7 @@ async def register_asset(
     raise HTTPException(status_code=400, detail="Could not process media")
 
   phash = generate_phash(rep_frame)
-  embedding = generate_embedding(rep_frame)
+  
 
   # Embed watermark on representative frame
   wm_payload = f"{content_id}:{owner_name}"
@@ -58,7 +60,6 @@ async def register_asset(
     "owner_name": owner_name,
     "sport_category": sport_category,
     "phash": phash,
-    "embedding": embedding,
     "watermark_payload": wm_payload,
     "detection_count": 0,
     "file_url": "",
@@ -66,3 +67,4 @@ async def register_asset(
   })
 
   return {"content_id": content_id, "message": "Asset registered successfully"}
+>>>>>>> 48c5ffe (Removed Gemini embeddings and added AMD inference pipeline)

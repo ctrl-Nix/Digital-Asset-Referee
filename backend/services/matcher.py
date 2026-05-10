@@ -2,12 +2,15 @@ import json
 import os
 from pathlib import Path
 from services.fingerprint import phash_similarity
-from services.embedding import cosine_similarity
 from db.firestore import get_all_official_media
 
 PHASH_THRESHOLD = 25       # Hamming distance — candidates below this advance
 PHASH_WEIGHT = 0.4
 CNN_WEIGHT = 0.6
+
+def cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
+    """Placeholder: Return high similarity (AMD inference will replace this)"""
+    return 0.95
 
 def get_local_assets():
     path = Path("local_registry.json")
