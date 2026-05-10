@@ -1,9 +1,9 @@
 # --- Stage 1: Build the React Frontend ---
 FROM node:18-alpine AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package.json frontend/package-lock.json* ./
+WORKDIR /app
+COPY package.json package-lock.json* ./
 RUN npm install
-COPY frontend/ ./
+COPY . .
 RUN npm run build
 
 # --- Stage 2: Build the FastAPI Backend ---
@@ -25,7 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 
 # Copy the built React app into the backend static directory
-COPY --from=frontend-builder /app/frontend/dist ./backend/static
+COPY --from=frontend-builder /app/dist ./backend/static
 
 # Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
