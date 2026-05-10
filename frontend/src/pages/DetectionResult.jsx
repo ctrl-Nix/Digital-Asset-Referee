@@ -8,6 +8,7 @@ import AgentTimeline from '../components/AgentTimeline'
 import Badge from '../components/ui/Badge'
 import ConfidenceRing from '../components/ui/ConfidenceRing'
 import Card from '../components/ui/Card'
+import HardwareTelemetry from '../components/HardwareTelemetry'
 import { getDetection, getReportUrl } from '../services/api'
 
 export default function DetectionResult() {
@@ -145,6 +146,9 @@ export default function DetectionResult() {
             />
           </motion.div>
         )}
+
+        {/* Hardware Telemetry */}
+        <HardwareTelemetry />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

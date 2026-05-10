@@ -26,6 +26,7 @@ import { useAutoScanListener } from '../hooks/useAutoScanListener'
 import AnomalyAlert from '../components/AnomalyAlert'
 import AssetTable from '../components/AssetTable'
 import StatCard from '../components/ui/StatCard'
+import HardwareTelemetry from '../components/HardwareTelemetry'
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null)
@@ -280,6 +281,9 @@ export default function AdminDashboard() {
             </motion.div>
           ))}
         </AnimatePresence>
+
+        {/* Hardware Telemetry */}
+        <HardwareTelemetry />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
