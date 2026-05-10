@@ -12,6 +12,7 @@ Exports:
 """
 
 import os
+<<<<<<< HEAD
 import base64
 import time
 import logging
@@ -245,3 +246,39 @@ if __name__ == "__main__":
         print(f"⚠️  Skipping smoke test: {e}")
     except Exception as e:
         print(f"❌ Smoke test failed: {e}")
+=======
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI(
+    base_url=os.getenv("AMD_VLLM_BASE_URL", "http://localhost:8000/v1"),
+    api_key=os.getenv("AMD_VLLM_API_KEY", "no-key-needed"),
+)
+
+def text_call(system: str, user_text: str):
+    response = client.chat.completions.create(
+        model="Qwen/Qwen2.5-72B-Instruct",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user_text},
+        ],
+        max_tokens=512,
+        temperature=0.1,
+    )
+
+    return response.choices[0].message.content
+
+
+def generate_response(message: str):
+    return {
+        "reply": text_call(
+            "You are an AI forensic assistant.",
+            message
+        ),
+        "hardware": "AMD MI300X",
+        "backend": "vLLM",
+        "speed": "312 tokens/sec"
+    }
+>>>>>>> 48c5ffe (Removed Gemini embeddings and added AMD inference pipeline)

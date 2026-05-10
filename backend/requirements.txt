@@ -1,0 +1,20 @@
+<<<<<<< HEAD
+=======
+fastapi
+uvicorn
+python-multipart
+pillow
+imagehash
+torch>=2.0
+torchvision>=0.15
+opencv-python-headless
+ffmpeg-python
+invisible-watermark
+firebase-admin==6.4.0
+reportlab
+yt-dlp
+requests
+numpy
+scipy
+python-dotenv
+>>>>>>> 48c5ffe (Removed Gemini embeddings and added AMD inference pipeline)
