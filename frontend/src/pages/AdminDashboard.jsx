@@ -19,7 +19,7 @@ import {
   Zap
 } from 'lucide-react'
 import { auth } from '../services/firebase'
-import { getAssets, getSchedulerStatus, startScheduler, stopScheduler } from '../services/api'
+import { getAssets } from '../services/api'
 import { signOut } from '../services/auth'
 import { useAnomalyListener } from '../hooks/useAnomalyListener'
 import { useAutoScanListener } from '../hooks/useAutoScanListener'
@@ -72,20 +72,7 @@ export default function AdminDashboard() {
     fetchAssets()
   }, [user])
 
-  // Poll scheduler status every 10s
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await getSchedulerStatus()
-        setSchedulerStatus(res.data)
-      } catch (e) {
-        // Scheduler endpoint may not be available
-      }
-    }
-    fetchStatus()
-    const interval = setInterval(fetchStatus, 10000)
-    return () => clearInterval(interval)
-  }, [])
+
 
   const ownerName = useMemo(() => user?.displayName || user?.email || '', [user])
   const alerts = useAnomalyListener(ownerName)
@@ -100,23 +87,7 @@ export default function AdminDashboard() {
     navigate('/admin')
   }
 
-  const handleSchedulerToggle = async () => {
-    setSchedulerLoading(true)
-    try {
-      if (schedulerStatus?.running) {
-        await stopScheduler()
-      } else {
-        await startScheduler({ interval_minutes: 5 })
-      }
-      // Refresh status
-      const res = await getSchedulerStatus()
-      setSchedulerStatus(res.data)
-    } catch (e) {
-      console.error('Scheduler toggle error:', e)
-    } finally {
-      setSchedulerLoading(false)
-    }
-  }
+
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
@@ -204,29 +175,6 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Scheduler Toggle */}
-            <button
-              onClick={handleSchedulerToggle}
-              disabled={schedulerLoading}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded font-mono text-xs uppercase tracking-widest transition-all ${
-                schedulerStatus?.running
-                  ? 'bg-brand-secondary/10 border border-brand-secondary/30 text-brand-secondary hover:bg-brand-secondary/20'
-                  : 'bg-brand-primary/10 border border-brand-primary/30 text-brand-primary hover:bg-brand-primary/20'
-              } disabled:opacity-50`}
-            >
-              {schedulerStatus?.running ? (
-                <>
-                  <Square className="w-3 h-3" />
-                  Stop Scanner
-                </>
-              ) : (
-                <>
-                  <Play className="w-3 h-3" />
-                  Start Scanner
-                </>
-              )}
-            </button>
-
             <Link
               to="/admin/register"
               className="bg-brand-primary text-bg-void px-6 py-2.5 rounded font-display font-bold text-sm uppercase tracking-widest flex items-center gap-2 hover:brightness-110 transition-all"
@@ -287,7 +235,7 @@ export default function AdminDashboard() {
         <HardwareTelemetry />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <StatCard 
             label="Registered Assets" 
             value={assets.length} 
@@ -306,62 +254,12 @@ export default function AdminDashboard() {
             icon={AlertTriangle} 
             accentColor="#FF4F4F" 
           />
-          <StatCard 
-            label="Auto-Scans" 
-            value={schedulerStatus?.total_scans || 0} 
-            icon={Radio} 
-            accentColor="#3B82F6" 
-          />
         </div>
 
-        {/* Scheduler Status + Live Feed */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        {/* Live Auto-Scan Feed */}
+        <div className="grid grid-cols-1 gap-6 mb-10">
           
-          {/* Scheduler Status Card */}
           <div className="bg-[#12171F] border border-white/[0.07] rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-mono text-xs text-white/40 uppercase tracking-widest flex items-center gap-2">
-                <Radio className="w-3 h-3" />
-                Auto-Scanner
-              </h3>
-              <div className={`w-2 h-2 rounded-full ${schedulerStatus?.running ? 'bg-[#00E5A0] animate-pulse' : 'bg-white/20'}`} />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between font-mono text-[10px]">
-                <span className="text-white/30 uppercase">Status</span>
-                <span className={schedulerStatus?.running ? 'text-[#00E5A0]' : 'text-white/50'}>
-                  {schedulerStatus?.running ? 'SCANNING' : 'IDLE'}
-                </span>
-              </div>
-              <div className="flex justify-between font-mono text-[10px]">
-                <span className="text-white/30 uppercase">Total Scans</span>
-                <span className="text-white/60">{schedulerStatus?.total_scans || 0}</span>
-              </div>
-              <div className="flex justify-between font-mono text-[10px]">
-                <span className="text-white/30 uppercase">Total Detections</span>
-                <span className="text-white/60">{schedulerStatus?.total_detections || 0}</span>
-              </div>
-              <div className="flex justify-between font-mono text-[10px]">
-                <span className="text-white/30 uppercase">Last Scan</span>
-                <span className="text-white/60">
-                  {schedulerStatus?.last_scan_time 
-                    ? new Date(schedulerStatus.last_scan_time).toLocaleTimeString()
-                    : 'Never'
-                  }
-                </span>
-              </div>
-              <div className="flex justify-between font-mono text-[10px]">
-                <span className="text-white/30 uppercase">Last Infringements</span>
-                <span className={schedulerStatus?.last_scan_infringements > 0 ? 'text-[#FF4F4F]' : 'text-white/60'}>
-                  {schedulerStatus?.last_scan_infringements || 0}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Live Auto-Scan Feed */}
-          <div className="lg:col-span-2 bg-[#12171F] border border-white/[0.07] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-mono text-xs text-white/40 uppercase tracking-widest flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#00E5A0] animate-pulse" />

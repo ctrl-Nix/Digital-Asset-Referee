@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import UploadZone from '../components/UploadZone'
 import LoadingSteps from '../components/ui/LoadingSteps'
 import { detectMedia, chatWithAI } from '../services/api'
+import Card from '../components/ui/Card'
 
 export default function DetectionPortal() {
   const [file, setFile] = useState(null)
@@ -135,19 +136,36 @@ export default function DetectionPortal() {
           )}
 
           {aiInfo && (
-            <div className="bg-black text-white p-4 rounded-xl mt-6 max-w-2xl mx-auto">
-              <h2 className="text-xl font-bold mb-2">
-                AMD AI Inference
-              </h2>
+            <Card className="p-6 mt-6 max-w-2xl mx-auto">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                <h2 className="font-display font-bold text-lg text-white">
+                  AMD AI Inference
+                </h2>
+              </div>
 
-              <p><strong>Hardware:</strong> {aiInfo.hardware}</p>
-              <p><strong>Backend:</strong> {aiInfo.backend}</p>
-              <p><strong>Speed:</strong> {aiInfo.speed}</p>
+              <div className="space-y-2 font-mono text-xs">
+                <div className="flex justify-between border-b border-white/5 py-1">
+                  <span className="text-brand-neutral uppercase">Hardware</span>
+                  <span className="text-white">{aiInfo.hardware}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/5 py-1">
+                  <span className="text-brand-neutral uppercase">Backend</span>
+                  <span className="text-white">{aiInfo.backend}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/5 py-1">
+                  <span className="text-brand-neutral uppercase">Speed</span>
+                  <span className="text-brand-primary font-bold">{aiInfo.speed}</span>
+                </div>
+              </div>
 
-              <p className="mt-3">
-                <strong>AI Response:</strong> {aiInfo.reply}
-              </p>
-            </div>
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <p className="font-mono text-[10px] text-brand-neutral uppercase mb-1">AI Response</p>
+                <p className="font-body text-sm text-white/80 leading-relaxed">
+                  {aiInfo.reply}
+                </p>
+              </div>
+            </Card>
           )}
         </motion.div>
 
