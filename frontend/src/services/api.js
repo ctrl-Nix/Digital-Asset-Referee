@@ -48,3 +48,8 @@ export const getRecentScans = (limit = 20) =>
 export const getDetectionStreamUrl = (id) =>
   `${BASE}/detect/stream/${id}`
 
+// --- AI Chat ---
+export const chatWithAI = (message) =>
+  axios.post(`${BASE}/chat`, {
+    message,
+  })

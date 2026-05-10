@@ -4,13 +4,14 @@ import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import UploadZone from '../components/UploadZone'
 import LoadingSteps from '../components/ui/LoadingSteps'
-import { detectMedia } from '../services/api'
+import { detectMedia, chatWithAI } from '../services/api'
 
 export default function DetectionPortal() {
   const [file, setFile] = useState(null)
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [aiInfo, setAiInfo] = useState(null)
   const navigate = useNavigate()
 
   const handleFileSelect = (selectedFile) => {
@@ -41,6 +42,14 @@ export default function DetectionPortal() {
         formData.append('url', url.trim())
       }
       const response = await detectMedia(formData)
+      
+      try {
+        const aiRes = await chatWithAI("Analyze sports media piracy patterns")
+        setAiInfo(aiRes.data)
+      } catch (err) {
+        console.error('AI Chat failed:', err)
+      }
+
       navigate(`/result/${response.data.detection_id}`)
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Detection failed. Please try again.')
@@ -123,6 +132,22 @@ export default function DetectionPortal() {
                 Initiate Scan
               </button>
             </form>
+          )}
+
+          {aiInfo && (
+            <div className="bg-black text-white p-4 rounded-xl mt-6 max-w-2xl mx-auto">
+              <h2 className="text-xl font-bold mb-2">
+                AMD AI Inference
+              </h2>
+
+              <p><strong>Hardware:</strong> {aiInfo.hardware}</p>
+              <p><strong>Backend:</strong> {aiInfo.backend}</p>
+              <p><strong>Speed:</strong> {aiInfo.speed}</p>
+
+              <p className="mt-3">
+                <strong>AI Response:</strong> {aiInfo.reply}
+              </p>
+            </div>
           )}
         </motion.div>
 

@@ -27,6 +27,7 @@ import AnomalyAlert from '../components/AnomalyAlert'
 import AssetTable from '../components/AssetTable'
 import StatCard from '../components/ui/StatCard'
 import HardwareTelemetry from '../components/HardwareTelemetry'
+import GlobalRadar from '../components/GlobalRadar'
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null)
@@ -442,48 +443,9 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Mock Map / Radar Visual */}
-            <div className="h-48 w-full bg-[#0C0F14] rounded-lg border border-white/5 relative overflow-hidden flex items-center justify-center">
-               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #00E5A0 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-               <div className="absolute w-full h-[1px] bg-brand-primary/10 top-1/2 -translate-y-1/2" />
-               <div className="absolute h-full w-[1px] bg-brand-primary/10 left-1/2 -translate-x-1/2" />
-               
-               {/* Dynamic Alert Nodes from auto-scan */}
-               {autoScanInfringements.slice(0, 4).map((det, i) => {
-                 const positions = [
-                   { top: '25%', left: '33%' },
-                   { bottom: '33%', right: '25%' },
-                   { top: '40%', right: '40%' },
-                   { bottom: '25%', left: '20%' },
-                 ]
-                 const pos = positions[i % positions.length]
-                 return (
-                   <div key={det.detection_id || i} className="absolute group" style={pos}>
-                     <div className="w-3 h-3 bg-brand-secondary rounded-full animate-ping opacity-75" />
-                     <div className="absolute inset-0 w-3 h-3 bg-brand-secondary rounded-full" />
-                     <div className="absolute top-4 left-0 bg-bg-void/90 border border-brand-secondary/30 px-2 py-1 rounded text-[8px] font-mono text-brand-secondary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                       {det.source_metadata?.title?.substring(0, 30) || det.platform || 'Detection'} ({det.platform})
-                     </div>
-                   </div>
-                 )
-               })}
-
-               {/* Static nodes if no auto-scan data */}
-               {autoScanInfringements.length === 0 && (
-                 <>
-                   <div className="absolute top-1/4 left-1/3 group">
-                     <div className="w-3 h-3 bg-brand-secondary rounded-full animate-ping opacity-75" />
-                     <div className="absolute inset-0 w-3 h-3 bg-brand-secondary rounded-full" />
-                     <div className="absolute top-4 left-0 bg-bg-void/90 border border-brand-secondary/30 px-2 py-1 rounded text-[8px] font-mono text-brand-secondary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                        Awaiting scan data...
-                     </div>
-                   </div>
-                 </>
-               )}
-
-               <span className="font-mono text-[10px] text-brand-primary opacity-40 uppercase tracking-[0.5em]">
-                 {schedulerStatus?.running ? 'Forensic Scan Active' : 'Scanner Idle'}
-               </span>
+            {/* Animated Radar Visualization */}
+            <div className="h-64 mt-4">
+              <GlobalRadar detections={autoScanDetections} />
             </div>
           </div>
         </div>
