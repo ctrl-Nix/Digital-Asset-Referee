@@ -15,6 +15,7 @@ const LEVEL_STYLES = {
   warning: "text-accent",
   danger: "text-destructive",
 }
+const TYPEWRITER_SPEED_MS = 18 // Character reveal cadence for terminal-style animation.
 
 export default function AgentTimeline({ agentData, detectionId, isLive = false }) {
   const [agentStates, setAgentStates] = useState({
@@ -268,7 +269,7 @@ function TypewriterText({ text, animate }) {
       index += 1
       setDisplay(text.slice(0, index))
       if (index >= text.length) clearInterval(timer)
-    }, 18)
+    }, TYPEWRITER_SPEED_MS)
     return () => clearInterval(timer)
   }, [animate, text])
 

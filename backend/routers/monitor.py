@@ -27,6 +27,8 @@ class SchedulerConfig(BaseModel):
     max_results_per_platform: int = Field(3, ge=1, le=20)
 
 
+# In-memory singleton config; stored in-process and not persisted across restarts.
+# Updates replace the object atomically but are not synchronized across threads/workers.
 _monitor_config = SchedulerConfig()
 
 

@@ -35,6 +35,22 @@ import HardwareTelemetry from "@/components/HardwareTelemetry"
 import GlobalRadar from "@/components/GlobalRadar"
 import AgentTimeline from "@/components/AgentTimeline"
 
+// Telemetry values are derived from scan batch size to keep motion reactive without new API fields.
+const TELEMETRY_BASE = {
+  throughputPerItem: 1800,
+  latencyActiveMs: 42,
+  latencyIdleMs: 68,
+  latencyJitter: 9,
+  activeAgents: 3,
+  idleAgents: 1,
+  gpuActiveBase: 74,
+  gpuIdleBase: 36,
+  gpuJitter: 12,
+  memoryActiveBase: 62,
+  memoryIdleBase: 28,
+  memoryJitter: 8,
+}
+
 // Sub-components
 function StatCard({ title, value, trend, trendUp, icon: Icon, delay, color = "text-primary" }) {
   return (
@@ -691,13 +707,19 @@ export function AdminDashboard() {
 
   const telemetryStats = useMemo(() => {
     const lastCount = schedulerStatus?.last_scan_count ?? combinedDetections.length
-    const baseThroughput = Math.max(1, lastCount) * 1800
+    const baseThroughput = Math.max(1, lastCount) * TELEMETRY_BASE.throughputPerItem
     return {
       tokenThroughput: baseThroughput,
-      inferenceLatency: schedulerStatus?.running ? 42 + (lastCount % 9) : 68,
-      activeAgents: schedulerStatus?.running ? 3 : 1,
-      gpuUtilization: schedulerStatus?.running ? 74 + (lastCount % 12) : 36,
-      memoryUsage: schedulerStatus?.running ? 62 + (lastCount % 8) : 28,
+      inferenceLatency: schedulerStatus?.running
+        ? TELEMETRY_BASE.latencyActiveMs + (lastCount % TELEMETRY_BASE.latencyJitter)
+        : TELEMETRY_BASE.latencyIdleMs,
+      activeAgents: schedulerStatus?.running ? TELEMETRY_BASE.activeAgents : TELEMETRY_BASE.idleAgents,
+      gpuUtilization: schedulerStatus?.running
+        ? TELEMETRY_BASE.gpuActiveBase + (lastCount % TELEMETRY_BASE.gpuJitter)
+        : TELEMETRY_BASE.gpuIdleBase,
+      memoryUsage: schedulerStatus?.running
+        ? TELEMETRY_BASE.memoryActiveBase + (lastCount % TELEMETRY_BASE.memoryJitter)
+        : TELEMETRY_BASE.memoryIdleBase,
     }
   }, [schedulerStatus, combinedDetections.length])
 
