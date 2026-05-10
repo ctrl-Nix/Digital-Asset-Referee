@@ -28,8 +28,8 @@ class SchedulerConfig(BaseModel):
     max_results_per_platform: int = Field(3, ge=1, le=20)
 
 
-# In-memory singleton config; stored in-process and not persisted across restarts.
-# Updates replace the object atomically but are not synchronized across threads/workers.
+# In-memory singleton config; thread-safe within this process but not shared across multi-worker deployments.
+# Persist externally if configs must be consistent across multiple Uvicorn workers or restarts.
 _monitor_config = SchedulerConfig()
 _monitor_lock = Lock()
 

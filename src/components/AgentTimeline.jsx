@@ -15,7 +15,7 @@ const LEVEL_STYLES = {
   warning: "text-accent",
   danger: "text-destructive",
 }
-const TYPEWRITER_SPEED_MS = 18 // Character reveal cadence for terminal-style animation.
+const TYPEWRITER_SPEED_MS = 18 // ~55 chars/sec keeps the terminal effect readable without stalling.
 
 export default function AgentTimeline({ agentData, detectionId, isLive = false }) {
   const [agentStates, setAgentStates] = useState({
