@@ -6,34 +6,18 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# --- Stage 2: Build the FastAPI Backend ---
-FROM python:3.10-slim
+# --- Stage 2: Serve the Frontend with Nginx ---
+FROM nginx:alpine
 WORKDIR /app
 
-# Install system dependencies (ffmpeg for yt-dlp, libgl1 for OpenCV)
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy backend requirements and install
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy the built React app to nginx serving directory
+COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 
-# Copy backend code
-COPY backend/ ./backend/
+# Expose port 80
+EXPOSE 80
 
-# Copy the built React app into the backend static directory
-COPY --from=frontend-builder /app/dist ./backend/static
-
-# Expose port 7860 (Hugging Face Spaces default)
-EXPOSE 7860
-
-# Set environment variables
-ENV HOST=0.0.0.0
-ENV PORT=7860
-
-# Run the FastAPI server via Uvicorn from the backend folder
-WORKDIR /app/backend
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run nginx
+CMD ["nginx", "-g", "daemon off;"]
